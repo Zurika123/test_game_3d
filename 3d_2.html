@@ -1,0 +1,483 @@
+<div class="a">
+  <canvas id="c" width="1000" height="500"></canvas>
+</div>
+<br />
+<div id="controls">
+  <button id="move-up">Up</button>
+  <button id="move-left">Left</button>
+  <button id="move-down">Down</button>
+  <button id="move-right">Right</button>
+</div>
+<div id="p"></div>
+<img
+  id="img"
+  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGcjAyuBMe99SLbepdYpH7rivzRQFocPAGsItfe_ksPw&s"
+/>
+<img
+  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdR7yUGXOd726qEZdvN7gh3iivp1PMmlqR4A&usqp=CAU"
+  id="img2"
+/>
+
+<script>
+  // Lấy các phần tử nút điều khiển từ DOM
+  const moveUpButton = document.getElementById("move-up");
+  const moveDownButton = document.getElementById("move-down");
+  const moveLeftButton = document.getElementById("move-left");
+  const moveRightButton = document.getElementById("move-right");
+
+  // Xử lý sự kiện khi người dùng nhấn vào các nút điều khiển
+  function stopAllMovement() {
+    move = false;
+    moveb = false;
+    left = false;
+    right = false;
+  }
+
+  // Biến để kiểm soát việc di chuyển
+  let do_move = false;
+  let do_moveb = false;
+  let do_left = false;
+  let do_right = false;
+
+  moveUpButton.addEventListener("mousedown", () => {
+    do_move = true;
+    move = true;
+  });
+  moveUpButton.addEventListener("mouseup", () => {
+    do_move = false;
+    move = false;
+  });
+  moveDownButton.addEventListener("mousedown", () => {
+    do_moveb = true;
+    moveb = true;
+  });
+  moveDownButton.addEventListener("mouseup", () => {
+    do_moveb = false;
+    moveb = false;
+  });
+  moveLeftButton.addEventListener("mousedown", () => {
+    do_left = true;
+    left = true;
+  });
+  moveLeftButton.addEventListener("mouseup", () => {
+    do_left = false;
+    left = false;
+  });
+  moveRightButton.addEventListener("mousedown", () => {
+    do_right = true;
+    right = true;
+  });
+  moveRightButton.addEventListener("mouseup", () => {
+    do_right = false;
+    right = false;
+  });
+
+  // Sự kiện khi di chuyển chuột ra khỏi nút (nếu có)
+  /*moveUpButton.addEventListener("mouseleave", () => {
+    if (do_move) {
+      move = false;
+    }
+  });*/
+</script>
+<style>
+  body {
+    background: black;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  canvas {
+    background: #ffffff;
+    width: 100%;
+    height: 100%;
+  }
+
+  #p {
+    position: absolute;
+    background: blue;
+  }
+
+  img {
+    opacity: 0;
+  }
+  #controls {
+    display: none;
+  }
+
+  #move-up {
+    width: 60px;
+    height: 60px;
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  #move-down,
+  #move-left,
+  #move-right {
+    width: 60px;
+    height: 60px;
+    grid-row: 2;
+  }
+  .a {
+    width: 1000px;
+    height: 500px;
+    overflow: hidden;
+    background-color: aquamarine;
+  }
+  @media screen and (max-width: 750px) {
+    body {
+      height: 350px;
+    }
+    #controls {
+      background-color: aqua;
+      width: 195px;
+      height: 125px; /* Đã thay đổi chiều cao để chứa tất cả các nút */
+      gap: 5px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr 1fr;
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+    }
+    .a {
+      width: 700px;
+      height: 350px;
+      overflow: hidden;
+      background-color: aquamarine;
+    }
+  }
+</style>
+<script>
+  /*
+   * CONTROLS:
+   * Move - W, S
+   * Rotate - A, D
+   */
+
+  const c = document.getElementById("c");
+  const g = c.getContext("2d");
+
+  // wall image
+  const img = document.getElementById("img");
+  const img2 = document.getElementById("img2");
+
+  // Update Speed
+  const FPS = 1000 / 60;
+
+  const pl = document.getElementById("p");
+
+  // Map
+  const size = 10; // độ bự bản đồ bên trái
+  const map = [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  ];
+
+  // Draw Map
+  function draw() {
+    for (let i = 0; i < 20; i++) {
+      for (let j = 0; j < 20; j++) {
+        if (map[j][i] == 1) {
+          let sx = i * size;
+          let sy = j * size;
+          //g.fillStyle = "gray";
+          //g.fillRect(sx + 1, sy + 1, size - 2, size - 2);
+          g.drawImage(img, sx + 1, sy + 1, size - 0.5, size - 0.5);
+          //  g.fillRect(sx , sy , size - 1, size - 1);
+        } else if (map[j][i] == 2) {
+          let sx2 = i * size;
+          let sy2 = j * size;
+          // Draw the image corresponding to the element with value 2
+          g.drawImage(img2, sx2 + 1, sy2 + 1, size - 2, size - 2);
+        }
+      }
+    }
+  }
+
+  // Player Settings trên bản đồ
+  const w = 5; //độ rộng nhân vật
+  const h = 5;
+  let x = 60; //vị trí ban đầu
+  let y = 60;
+  let dx, dy;
+  let deg = 0;
+  let move = false;
+  let moveb = false;
+  let left = false;
+  let right = false;
+  let up = false;
+  let down = false;
+  let pitch = 0;
+
+  pl.style.width = w + "px";
+  pl.style.height = h + "px";
+  pl.style.left = x + "px";
+  pl.style.top = y + "px";
+
+  // Controls
+  addEventListener("keydown", (e) => {
+    if (e.key == "a") {
+      left = true;
+    } else if (e.key == "d") {
+      right = true;
+    }
+    if (e.key == "w") {
+      move = true;
+    } else if (e.key == "s") {
+      moveb = true;
+    }
+    if (e.keyCode == 38) up = true;
+    if (e.keyCode == 40) down = true;
+  });
+  addEventListener("keyup", (e) => {
+    if (e.key == "a") {
+      left = false;
+    } else if (e.key == "d") {
+      right = false;
+    }
+    if (e.key == "w") {
+      move = false;
+    } else if (e.key == "s") {
+      moveb = false;
+    }
+    if (e.keyCode == 38) up = false;
+    if (e.keyCode == 40) down = false;
+  });
+
+  // Ray Settings
+  const fov = 60;
+  let rx = new Array(fov);
+  let ry = new Array(fov);
+
+  let dis = new Array(fov);
+  let wh = new Array(fov);
+
+  const ww = c.width / 2 / fov;
+
+  // Update | Game Loop
+  update();
+  function update() {
+    // Clear Canvas
+    g.clearRect(10, 0, c.width, c.height);
+
+    // Draw Map
+    draw();
+
+    // Thay đổi góc quay và pitch cho góc nhìn thứ hai
+
+    pitch = 0; // Đặt pitch mới
+
+    // Thực hiện các bước khác như trong hàm update() hiện tại
+    // ...
+
+    // Gọi lại hàm update() để lặp lại quá trình cập nhật
+
+    // Player Rotate
+    if (left == true) {
+      deg -= 0.075;
+      if (deg < 0) {
+        deg = Math.PI * 2;
+      }
+    } else if (right == true) {
+      deg += 0.075;
+      if (deg > Math.PI * 2) {
+        deg = 0;
+      }
+    }
+
+    if (up == true) pitch += (0.075 * 180) / Math.PI;
+    if (down == true) pitch -= (0.075 * 180) / Math.PI;
+
+    // Player Direction
+    dx = Math.cos(deg) * 2;
+    dy = Math.sin(deg) * 2;
+
+    // Player Movement
+    if (move == true) {
+      x += dx;
+      y += dy;
+    } else if (moveb == true) {
+      x -= dx;
+      y -= dy;
+    }
+
+    const bt = g.createLinearGradient(
+      c.width / 2 + c.width / 4,
+      c.height / 2,
+      c.width / 2 + c.width / 4,
+      c.height
+    );
+    bt.addColorStop(0, "black");
+    bt.addColorStop(1, "green");
+
+    g.fillStyle = bt;
+    g.fillRect(
+      c.width / 2,
+      c.height / 2 + pitch,
+      c.width / 2,
+      c.height / 2 - pitch
+    );
+    g.fillStyle = "lightblue";
+    g.fillRect(c.width / 2, 0, c.width / 2, c.height / 2 + pitch);
+
+    // Raycasting
+    for (let i = 0; i < fov; i++) {
+      rx[i] = x;
+      ry[i] = y;
+      let dg = deg - ((fov / 2) * Math.PI) / 180 + (i * Math.PI) / 180;
+      let dxx = Math.cos(dg) * 2;
+      let dyy = Math.sin(dg) * 2;
+      let r = 0;
+      while (map[Math.floor(ry[i] / size)][Math.floor(rx[i] / size)] == 0) {
+        rx[i] += dxx * 0.25;
+        ry[i] += dyy * 0.25;
+        r++;
+        if (r > 800) break;
+      }
+
+      dis[i] = Math.sqrt(Math.pow(rx[i] - x, 2) + Math.pow(ry[i] - y, 2));
+      wh[i] = Math.floor(
+        (c.height / (dis[i] * Math.cos(deg - dg))) * (size / 2)
+      );
+
+      let tof = 0;
+
+      // Draw Texture
+      // Trong hàm update(), trong vòng lặp raycasting:
+      // Draw Texture
+      if (map[Math.floor(ry[i] / size)][Math.floor(rx[i] / size)] == 2) {
+        // Nếu giá trị của phần tử là 2 trong mảng map
+        // Xác định vị trí và kích thước của mặt của bức tường trong hình ảnh img2
+        let wallWidth = img2.width; // Độ rộng của mặt của bức tường trong img2
+        let wallHeight = img2.height; // Chiều cao của mặt của bức tường trong img2
+        let wallX = 5; // Tọa độ X của mặt của bức tường trong img2
+        let wallY = 7; // Tọa độ Y của mặt của bức tường trong img2
+
+        // Vẽ mặt của bức tường từ hình ảnh img2
+        g.drawImage(
+          img2,
+          wallX, // Vị trí X của mặt của bức tường trong img2
+          wallY, // Vị trí Y của mặt của bức tường trong img2
+          wallWidth, // Chiều rộng của mặt của bức tường trong img2
+          wallHeight, // Chiều cao của mặt của bức tường trong img2
+          c.width / 2 + ww * i,
+          c.height / 2 - wh[i] / 2 + pitch,
+          ww + 1,
+          wh[i]
+        );
+      } else {
+        // Nếu giá trị của phần tử không phải là 2, vẽ hình ảnh thông thường
+        g.drawImage(
+          img,
+          tof,
+          0,
+          ww,
+          img.height,
+          c.width / 2 + ww * i,
+          c.height / 2 - wh[i] / 2 + pitch,
+          ww + 1,
+          wh[i]
+        );
+      }
+    }
+
+    // Draw Rays | Walls
+    for (let i = 0; i < fov; i++) {
+      g.strokeStyle = "red";
+      g.beginPath();
+      g.moveTo(x, y);
+      g.lineTo(rx[i], ry[i]);
+      g.stroke();
+      /*
+      let col = 255 - dis[i];
+      if ( col < 0 ) { col = 0; }
+      if ( col > 255 ) { col = 255; }
+      g.fillStyle = "rgb(0,0,"+col+")";
+      g.fillRect(c.width/2 + (ww*i), c.height/2 - wh[i]/2 + pitch, ww+1, wh[i]);*/
+    }
+
+    // Collision
+    for (let i = 0; i < 20; i++) {
+      for (let j = 0; j < 20; j++) {
+        if (map[j][i] == 1) {
+          let sx = i * size;
+          let sy = j * size;
+
+          if (
+            x + w / 2 > sx &&
+            x - w / 2 < sx + size &&
+            y + h / 2 > sy &&
+            y - h / 2 < sy + size
+          ) {
+            if (move == true) {
+              x -= dx;
+              y -= dy;
+            } else if (moveb == true) {
+              x += dx;
+              y += dy;
+            }
+          }
+        }
+        if (map[j][i] == 2) {
+          let sx2 = i * size;
+          let sy2 = j * size;
+
+          if (
+            x + w / 2 > sx2 &&
+            x - w / 2 < sx2 + size &&
+            y + h / 2 > sy2 &&
+            y - h / 2 < sy2 + size
+          ) {
+            if (move == true) {
+              x -= dx;
+              y -= dy;
+            } else if (moveb == true) {
+              x += dx;
+              y += dy;
+            }
+          }
+        }
+      }
+    }
+
+    // Update Player
+    let xnow, ynow, xnew, ynew;
+    if (window.innerWidth < 750) {
+      xnow = 0;
+      ynow = 0;
+      xnew = (x * 7) / 10;
+      ynew = (y * 7) / 10;
+    } else {
+      xnow = 0;
+      ynow = 0;
+      xnew = x;
+      ynew = y;
+    }
+    pl.style.left = xnew - w / 2 + xnow + "px";
+    pl.style.top = ynew - h / 2 + ynow + "px";
+    let rt = (deg * 180) / Math.PI;
+    pl.style.transform = "rotate(" + rt + "deg)";
+
+    setTimeout(update, FPS);
+  }
+</script>
