@@ -294,7 +294,7 @@
   update();
   function update() {
     // Clear Canvas
-    g.clearRect(10, 0, c.width, c.height);
+    g.clearRect(0, 0, c.width, c.height);
 
     // Draw Map
     draw();
@@ -343,7 +343,7 @@
       c.width / 2 + c.width / 4,
       c.height
     );
-    bt.addColorStop(0, "black");
+    bt.addColorStop(0, "gray");
     bt.addColorStop(1, "green");
 
     g.fillStyle = bt;
@@ -382,20 +382,12 @@
       // Trong hàm update(), trong vòng lặp raycasting:
       // Draw Texture
       if (map[Math.floor(ry[i] / size)][Math.floor(rx[i] / size)] == 2) {
-        // Nếu giá trị của phần tử là 2 trong mảng map
-        // Xác định vị trí và kích thước của mặt của bức tường trong hình ảnh img2
-        let wallWidth = img2.width; // Độ rộng của mặt của bức tường trong img2
-        let wallHeight = img2.height; // Chiều cao của mặt của bức tường trong img2
-        let wallX = 5; // Tọa độ X của mặt của bức tường trong img2
-        let wallY = 7; // Tọa độ Y của mặt của bức tường trong img2
-
-        // Vẽ mặt của bức tường từ hình ảnh img2
         g.drawImage(
           img2,
-          wallX, // Vị trí X của mặt của bức tường trong img2
-          wallY, // Vị trí Y của mặt của bức tường trong img2
-          wallWidth, // Chiều rộng của mặt của bức tường trong img2
-          wallHeight, // Chiều cao của mặt của bức tường trong img2
+          tof,
+          0,
+          ww,
+          img2.height,
           c.width / 2 + ww * i,
           c.height / 2 - wh[i] / 2 + pitch,
           ww + 1,
