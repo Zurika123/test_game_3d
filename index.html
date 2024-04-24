@@ -78,6 +78,26 @@
       move = false;
     }
   });*/
+  moveUpButton.addEventListener("mouseleave", () => {
+    if (do_move) {
+      move = false;
+    }
+  });
+  moveDownButton.addEventListener("mouseleave", () => {
+    if (do_move) {
+      move = false;
+    }
+  });
+  moveLeftButton.addEventListener("mouseleave", () => {
+    if (do_move) {
+      move = false;
+    }
+  });
+  moveRightButton.addEventListener("mouseleave", () => {
+    if (do_move) {
+      move = false;
+    }
+  });
 </script>
 <style>
   body {
@@ -138,7 +158,7 @@
       grid-template-columns: 1fr 1fr 1fr;
       grid-template-rows: 1fr 1fr 1fr 1fr;
       position: fixed;
-      top: 250px;
+      top: 200px;
       left: 30px;
     }
     .a {
